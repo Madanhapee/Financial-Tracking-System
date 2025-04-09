@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Add Transaction</title>
+<style>
+body {
+    font-family: sans-serif;
+    margin: 20px;
+}
+
+form {
+    width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+    border: 3px solid #5f10f1;
+    border-radius: 5px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="datetime-local"],
+select {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 4px solid #e40c0c;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+button {
+    background-color: #4e90f1;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #d65f10;
+}
+</style>
+</head>
+<body>
+
+<h2>Add New Transaction</h2>
+
+<form id="transactionForm" action="/add_transaction" method="post">
+
+    <label for="transaction_id">Transaction ID:</label>
+    <input type="text" id="transaction_id" name="transaction_id" required>
+
+    <label for="account_id">Account ID:</label>
+    <input type="text" id="account_id" name="account_id" required>
+
+    <label for="transaction_date">Transaction Date & Time:</label>
+    <input type="datetime-local" id="transaction_date" name="transaction_date" required>
+
+    <label for="amount">Amount:</label>
+    <input type="number" id="amount" name="amount" step="0.01" required>
+    <label for="Description"> Transaction Purpose:</label>
+    <input type="text" id="transaction Description" name="Transaction Description"  required>
+    
+    <label for="transaction_type">Transaction_Type:</label>
+    <select id="transaction_type" name="transaction_type">
+            <option value="credit"> credit</option>
+            <option value="debit"> debit</option>
+    </select>
+    <button type="submit">Add Transaction</button>
+</form>
+<footer class="site-footer">
+    <div class="container">
+        <p class="text-gray-600 text-sm">&copy; 2025 Financial Tracking System. All rights reserved.</p>
+    </div>
+</footer>
+</body>
+</html>

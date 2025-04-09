@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Financial Tracking System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f4f6f8;
+            font-family: 'Montserrat', sans-serif;
+            color: #495057;
+            line-height: 1.7;
+            margin: 0;
+            padding: 0;
+            font-size: 0.95rem;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 3rem auto;
+            padding: 2rem;
+            background-color: #fff;
+            border-radius: 0.8rem;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.04);
+        }
+
+        .site-header {
+            background-color: #0000FF;
+            padding: 2rem 0;
+            border-radius: 0.6rem 0.6rem 0 0;
+            margin-bottom: 2.2rem;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        }
+
+        .site-header .container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .site-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin: 0;
+            color: #0000FF;
+        }
+
+        .site-header nav a {
+            color: #eeeeee;
+            text-decoration: none;
+            margin-left: 1.5rem;
+            padding: 0.6rem 1rem;
+            border-radius: 0.4rem;
+            transition: color 0.3s ease, background-color 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .site-header nav a:hover {
+            color: #ffffff;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .site-header nav .login-button {
+            background-color: #ff6600;
+            color: #fff;
+            padding: 0.7rem 1.5rem;
+            border-radius: 0.4rem;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border: none;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .site-header nav .login-button:hover {
+            background-color: #cc5200;
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
+        }
+
+        .main-content {
+            padding: 2.5rem 0;
+            text-align: left;
+        }
+
+        .welcome-section h2 {
+            color: #1a52e5;
+            font-size: 2.2rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            letter-spacing: -0.02em;
+        }
+
+        .welcome-section p {
+            color: #4a5568;
+            font-size: 1.1rem;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        .call-to-action {
+            display: inline-block;
+            background-color: #ffcc00;
+            color: #003366;
+            padding: 0.8rem 1.6rem;
+            text-decoration: none;
+            border-radius: 0.4rem;
+            font-weight: 600;
+            font-size: 0.9rem;
+            box-shadow: 0 5px 12px rgba(0, 0, 0, 0.12);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .call-to-action:hover {
+            background-color: #b38f00;
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.18);
+        }
+
+        .site-footer {
+            margin-top: 3rem;
+            padding: 1.5rem 0;
+            background-color: #e0f7fa;
+            border-top: 1px solid #b2ebf2;
+            border-radius: 0 0 0.6rem 0.6rem;
+            text-align: center;
+            color: #006064;
+            font-size: 0.85rem;
+        }
+
+        .site-footer .container {
+            padding: 0 2rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 font-inter">
+    <div class="container">
+        <header class="site-header">
+            <div class="container">
+                <h1>Financial Tracking System</h1>
+                <nav>
+                    <a href="login.html" class="login-button">Login</a>
+                </nav>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="welcome-section">
+                <h2>Enhancing Financial Accountability</h2>
+                <p>Empowering financial institutions with robust tracking and accountability solutions.</p>
+                <a href="#" class="call-to-action">Get Started</a>
+            </div>
+        </main>
+
+        <footer class="site-footer">
+            <div class="container">
+                <p>&copy; 2025 Financial Tracking System. All rights reserved.</p>
+            </div>
+        </footer>
+    </div>
+</body>
+</html>

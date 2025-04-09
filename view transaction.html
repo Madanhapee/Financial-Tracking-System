@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Transaction Table</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f4f8;
+            color: #333;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            align-items: center;
+        }
+
+        .site-header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            margin-bottom: 20px;
+            width: 100%;
+            box-sizing: border-box;
+            position: relative; /* Added for absolute positioning of button */
+        }
+
+        .site-header h1 {
+            font-size: 2rem;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 15px;
+            background-color: #fff;
+            color: #007bff;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        .back-button:hover {
+            background-color: #007bff;
+            color: white;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        #content {
+            width: 100%;
+            max-width: none;
+            margin-bottom: 20px;
+            box-sizing: border-box;
+            padding-left: 10px;
+            padding-right: 10px;
+            display: flex; /* Added to center the table */
+            justify-content: center; /* Added to center the table */
+        }
+
+        #transactionTable {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px auto;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            overflow-x: auto;
+            display: block;
+            max-height: 700px;
+        }
+
+        #transactionTable thead {
+            background-color: #007bff;
+            color: white;
+            position: sticky;
+            top: 0;
+        }
+
+
+        #transactionTable th, #transactionTable td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        #transactionTable th {
+            padding-top: 16px;
+            padding-bottom: 16px;
+            font-weight: 500;
+        }
+
+        #transactionTable tbody tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        #transactionTable tbody tr:hover {
+            background-color: #ddd;
+        }
+
+        .site-footer {
+            background-color: #f8f9fa;
+            color: #777;
+            text-align: center;
+            padding: 15px 0;
+            border-top: 1px solid #eee;
+            border-radius: 8px;
+            margin-top: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .site-footer .container {
+            max-width: 80%;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 768px) {
+            #transactionTable th, #transactionTable td {
+                padding: 8px;
+            }
+            #transactionTable thead {
+                display: none;
+            }
+            #transactionTable tr {
+                display: flex;
+                flex-direction: column;
+                border: 1px solid #ddd;
+                margin-bottom: 10px;
+                border-radius: 8px;
+            }
+            #transactionTable td {
+                border: none;
+            }
+            #transactionTable td:before {
+                content: attr(data-column) ": ";
+                font-weight: bold;
+                display: inline-block;
+                width: 120px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            #content {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <a href="/" class="back-button">Back</a>
+        <h1>Transaction Table</h1>
+    </header>
+
+    <div id="content">
+        <table id="transactionTable">
+            <thead>
+                <tr>
+                    <th>Transaction ID</th>
+                    <th>Account ID</th>
+                    <th>Transaction Date</th>
+                    <th>Amount</th>
+                    <th>Transaction Type</th>
+                    <th>Channel</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td colspan="6" style="text-align: center;">Loading transactions...</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2025 Financial Tracking System. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        const tableBody = document.querySelector("#transactionTable tbody");
+
+        // Function to fetch data from the backend and populate the table
+        async function fetchTransactions() {
+            try {
+                const response = await fetch('/get_transactions');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+
+                tableBody.innerHTML = '';
+
+                data.forEach(transaction => {
+                    const row = tableBody.insertRow();
+                    const transactionIdCell = row.insertCell();
+                    transactionIdCell.textContent = transaction.transaction_id;
+                    transactionIdCell.setAttribute("data-column", "Transaction ID");
+
+                    const accountIdCell = row.insertCell();
+                    accountIdCell.textContent = transaction.account_id;
+                    accountIdCell.setAttribute("data-column", "Account ID");
+
+                    const transactionDateCell = row.insertCell();
+                    transactionDateCell.textContent = transaction.transaction_date;
+                    transactionDateCell.setAttribute("data-column", "Transaction Date");
+
+                    const amountCell = row.insertCell();
+                    amountCell.textContent = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(transaction.amount);
+                    amountCell.setAttribute("data-column", "Amount");
+
+                    const transactionTypeCell = row.insertCell();
+                    transactionTypeCell.textContent = transaction.transaction_type;
+                    transactionTypeCell.setAttribute("data-column", "Transaction Type");
+
+                    const channelCell = row.insertCell();
+                    channelCell.textContent = transaction.channel;
+                    channelCell.setAttribute("data-column", "Channel");
+                });
+            } catch (error) {
+                console.error('Error fetching transactions:', error);
+                tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: red;">Failed to load transactions. Please check your network connection.</td></tr>`;
+            }
+        }
+
+        // Fetch data on page load
+        fetchTransactions();
+    </script>
+</body>
+</html>

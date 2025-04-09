@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Transaction Visualization</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f0f4f8;
+            color: #333;
+            line-height: 1.6;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            align-items: center;
+        }
+
+        .site-header {
+            background-color: #007bff;
+            color: white;
+            padding: 20px 0;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-bottom-left-radius: 8px;
+            border-bottom-right-radius: 8px;
+            margin-bottom: 20px;
+            width: 100%;
+            box-sizing: border-box;
+            position: relative; /* Added for absolute positioning of button */
+        }
+
+        .site-header h1 {
+            font-size: 2rem;
+            font-weight: 500;
+            margin: 0;
+        }
+
+        .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            padding: 10px 15px;
+            background-color: #fff;
+            color: #007bff;
+            text-decoration: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease, color 0.3s ease, box-shadow 0.3s ease;
+            font-weight: 500;
+            border: 1px solid #007bff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+        }
+
+        .back-button:hover {
+            background-color: #007bff;
+            color: white;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        #content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 95%;
+            max-width: 1200px;
+            margin-bottom: 20px;
+        }
+
+        .chart-container {
+            width: 100%;
+            margin-bottom: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            box-sizing: border-box;
+        }
+
+        .summary-container {
+            width: 100%;
+            margin-bottom: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .summary-container h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+            color: #007bff;
+        }
+
+        .summary-table {
+            margin: 0 auto;
+            border-collapse: collapse;
+            width: 80%;
+            max-width: 600px;
+        }
+
+        .summary-table th, .summary-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        .summary-table th {
+            background-color: #f0f0f0;
+        }
+
+        .site-footer {
+            background-color: #f8f9fa;
+            color: #777;
+            text-align: center;
+            padding: 15px 0;
+            border-top: 1px solid #eee;
+            border-radius: 8px;
+            margin-top: 20px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        @media (max-width: 600px) {
+            .summary-table {
+                width: 100%;
+            }
+            .chart-container {
+                width: 100%;
+            }
+             #content {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="site-header">
+        <a href="/" class="back-button">Back</a>
+        <h1>Transaction Visualization</h1>
+    </header>
+
+    <div id="content">
+        <div class="summary-container">
+            <h3>Summary Statistics</h3>
+            <table class="summary-table" id="summaryTable">
+                <tr><th>Statistic</th><th>Value</th></tr>
+                <tr><td>Total Transactions</td><td></td></tr>
+                <tr><td>Average Amount</td><td></td></tr>
+                <tr><td>Minimum Amount</td><td></td></tr>
+                <tr><td>Maximum Amount</td><td></td></tr>
+            </table>
+        </div>
+
+        <div class="chart-container">
+            <canvas id="amountDistributionChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="transactionTypeDistributionChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="transactionTypeByAmountChart"></canvas>
+        </div>
+        <div class="chart-container">
+            <canvas id="monthByAmountChart"></canvas>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <div class="container">
+            <p>&copy; 2025 Financial Tracking System. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Function to fetch data from the backend
+        async function fetchData(endpoint) {
+            try {
+                const response = await fetch(endpoint);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                return data;
+            } catch (error) {
+                console.error(`Error fetching data from ${endpoint}:`, error);
+                alert(`Failed to load data from ${endpoint}. Please check your network connection and try again.`);
+                return null;
+            }
+        }
+
+        // Function to calculate summary statistics
+        function calculateSummary(data) {
+            if (!data || data.length === 0) {
+                return {
+                    totalTransactions: 0,
+                    averageAmount: 0,
+                    minAmount: 0,
+                    maxAmount: 0,
+                };
+            }
+            const amounts = data.map(t => t.amount);
+            const total = amounts.reduce((sum, amount) => sum + amount, 0);
+            const average = total / amounts.length;
+            const min = Math.min(...amounts);
+            const max = Math.max(...amounts);
+
+            return {
+                totalTransactions: data.length,
+                averageAmount: average.toFixed(2),
+                minAmount: min.toFixed(2),
+                maxAmount: max.toFixed(2),
+            };
+        }
+
+        // Function to render summary statistics
+        function renderSummary(summary) {
+            const summaryTable = document.getElementById('summaryTable');
+            summaryTable.rows[0].cells[1].textContent = summary.totalTransactions;
+            summaryTable.rows[1].cells[1].textContent = summary.averageAmount;
+            summaryTable.rows[2].cells[1].textContent = summary.minAmount;
+            summaryTable.rows[3].cells[1].textContent = summary.maxAmount;
+        }
+
+        // Function to prepare data for amount distribution chart
+        function prepareAmountDistributionData(data) {
+            if (!data || data.length === 0) return { labels: [], datasets: [] };
+
+            const amountCounts = {};
+            data.forEach(item => {
+                const bucket = Math.floor(item.amount / 100) * 100;
+                const label = `$${bucket} - $${bucket + 99}`;
+                amountCounts[label] = (amountCounts[label] || 0) + 1;
+            });
+
+            const labels = Object.keys(amountCounts);
+            const values = Object.values(amountCounts);
+
+            return {
+                labels,
+                datasets: [{
+                    label: 'Amount Distribution',
+                    data: values,
+                    backgroundColor: 'rgba(255, 99, 132, 0.6)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1,
+                }]
+            };
+        }
+
+        // Function to render amount distribution chart
+        function renderAmountDistributionChart(chartData) {
+            const ctx = document.getElementById('amountDistributionChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Amount Range',
+                                font: {
+                                    size: 12,
+                                }
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Number of Transactions',
+                                font: {
+                                    size: 12,
+                                }
+                            },
+                            beginAtZero: true
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += context.formattedValue;
+                                    return label;
+                                },
+                            },
+                        },
+                    }
+                }
+            });
+        }
+
+        // Function to prepare data for transaction type distribution chart
+        function prepareTransactionTypeDistributionData(data) {
+            if (!data || data.length === 0) return { labels: [], datasets: [] };
+            const typeCounts = {};
+            data.forEach(item => {
+                typeCounts[item.transaction_type] = (typeCounts[item.transaction_type] || 0) + 1;
+            });
+            const labels = Object.keys(typeCounts);
+            const values = Object.values(typeCounts);
+            return {
+                labels,
+                datasets: [{
+                    label: 'Transaction Type Distribution',
+                    data: values,
+                    backgroundColor: ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)', 'rgba(255, 206, 86, 0.6)', 'rgba(75, 192, 192, 0.6)'],
+                    borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)'],
+                    borderWidth: 1,
+                }]
+            };
+        }
+
+        // Function to render transaction type distribution chart
+        function renderTransactionTypeDistributionChart(chartData) {
+            const ctx = document.getElementById('transactionTypeDistributionChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'pie',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 12,
+                                },
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    let label = context.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    label += context.formattedValue;
+                                    return label;
+                                },
+                            },
+                        },
+                    }
+                },
+            });
+        }
+
+        // Function to prepare data for transaction type by amount
+        function prepareTransactionTypeByAmountData(data) {
+            if (!data || data.length === 0) return { labels: [], datasets: [] };
+
+            const typeAmounts = {};
+            data.forEach(item => {
+                typeAmounts[item.transaction_type] = (typeAmounts[item.transaction_type] || 0) + item.amount;
+            });
+
+            const labels = Object.keys(typeAmounts);
+            const values = Object.values(typeAmounts);
+
+            return {
+                labels,
+                datasets: [{
+                    label: 'Total Amount',
+                    data: values,
+                    backgroundColor: ['rgba(255, 99, 132, 0.6)', 'rgba(54, 162, 235, 0.6)', 'rgba(255, 206, 86, 0.6)', 'rgba(75, 192, 192, 0.6)'],
+                    borderColor: ['rgba(255, 99, 132, 1)', 'rgba(54, 162, 235, 1)', 'rgba(255, 206, 86, 1)', 'rgba(75, 192, 192, 1)'],
+                    borderWidth: 1,
+                }]
+            };
+        }
+
+        // Function to render transaction type by amount chart
+        function renderTransactionTypeByAmountChart(chartData) {
+            const ctx = document.getElementById('transactionTypeByAmountChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'bar',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Transaction Type',
+                                font: {
+                                    size: 12,
+                                }
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Total Amount',
+                                font: {
+                                    size: 12,
+                                },
+                            },
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 12,
+                                },
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                         label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                                    }
+                                    return label;
+                                },
+                            },
+                        },
+                    }
+                }
+            });
+        }
+
+        // Function to prepare data for month by amount chart
+        function prepareMonthByAmountData(data) {
+            if (!data || data.length === 0) return { labels: [], datasets: [] };
+            const monthAmounts = {};
+            data.forEach(item => {
+                const month = new Date(item.transaction_date).toLocaleString('default', { month: 'long' });
+                monthAmounts[month] = (monthAmounts[month] || 0) + item.amount;
+            });
+            const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            const labels = months.filter(month => Object.keys(monthAmounts).includes(month));
+            const values = labels.map(month => monthAmounts[month] || 0);
+
+            return {
+                labels,
+                datasets: [{
+                    label: 'Total Amount',
+                    data: values,
+                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1,
+                }]
+            };
+        }
+
+        // Function to render month by amount chart
+        function renderMonthByAmountChart(chartData) {
+            const ctx = document.getElementById('monthByAmountChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: chartData,
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Month',
+                                font: {
+                                    size: 12,
+                                }
+                            }
+                        },
+                        y: {
+                            display: true,
+                            title: {
+                                display: true,
+                                text: 'Total Amount',
+                                font: {
+                                    size: 12,
+                                },
+                            },
+                            beginAtZero: true,
+                            ticks: {
+                                callback: (value) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(value)
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            labels: {
+                                font: {
+                                    size: 12,
+                                },
+                            }
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                     if (context.parsed.y !== null) {
+                                         label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(context.parsed.y);
+                                     }
+                                    return label;
+                                },
+                            },
+                        },
+                    }
+                }
+            });
+        }
+
+        // Main function to fetch data and render visualizations
+        async function visualizeTransactions() {
+            const transactionData = await fetchData('/get_transaction_data');
+            if (transactionData) {
+                const summary = calculateSummary(transactionData);
+                renderSummary(summary);
+
+                const amountDistributionData = prepareAmountDistributionData(transactionData);
+                renderAmountDistributionChart(amountDistributionData);
+
+                const typeDistributionData = prepareTransactionTypeDistributionData(transactionData);
+                renderTransactionTypeDistributionChart(typeDistributionData);
+
+                const typeAmountData = prepareTransactionTypeByAmountData(transactionData);
+                renderTransactionTypeByAmountChart(typeAmountData);
+
+                const monthAmountData = prepareMonthByAmountData(transactionData);
+                renderMonthByAmountChart(monthAmountData);
+            }
+        }
+
+        // Call the main function
+        visualizeTransactions();
+    </script>
+</body>
+</html>
